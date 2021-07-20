@@ -47,26 +47,26 @@ bool compile_shader_file(const char *file_path, GLenum shader_type, GLuint *shad
     return ok;
 }
 
-void attach_shaders_to_program(GLuint *shaders, size_t shaders_count, GLuint program)
+bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
 {
-    for (size_t i = 0; i < shaders_count; ++i) {
-        glAttachShader(program, shaders[i]);
-    }
-}
+    *program = glCreateProgram();
 
-bool link_program(GLuint program, const char *file_path, size_t line)
-{
-    glLinkProgram(program);
+    glAttachShader(*program, vert_shader);
+    glAttachShader(*program, frag_shader);
+    glLinkProgram(*program);
 
     GLint linked = 0;
-    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    glGetProgramiv(*program, GL_LINK_STATUS, &linked);
     if (!linked) {
         GLsizei message_size = 0;
         GLchar message[1024];
 
-        glGetProgramInfoLog(program, sizeof(message), &message_size, message);
-        fprintf(stderr, "%s:%zu: Program Linking: %.*s\n", file_path, line, message_size, message);
+        glGetProgramInfoLog(*program, sizeof(message), &message_size, message);
+        fprintf(stderr, "Program Linking: %.*s\n", message_size, message);
     }
 
-    return linked;
+    glDeleteShader(vert_shader);
+    glDeleteShader(frag_shader);
+
+    return program;
 }

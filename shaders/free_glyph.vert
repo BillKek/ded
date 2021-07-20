@@ -1,7 +1,7 @@
 #version 330 core
 
 uniform vec2 resolution;
-uniform float time;
+uniform vec2 camera;
 
 layout(location = 0) in vec2 pos;
 layout(location = 1) in vec2 size;
@@ -16,7 +16,10 @@ out vec2 glyph_uv_size;
 out vec4 glyph_fg_color;
 out vec4 glyph_bg_color;
 
-vec2 camera_project(vec2 point);
+vec2 camera_project(vec2 point)
+{
+    return 2.0 * (point - camera) / resolution;
+}
 
 void main() {
     uv = vec2(float(gl_VertexID & 1), float((gl_VertexID >> 1) & 1));

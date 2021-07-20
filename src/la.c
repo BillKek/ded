@@ -114,8 +114,3 @@ Vec4f vec4f_div(Vec4f a, Vec4f b)
 {
     return vec4f(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
 }
-
-float lerpf(float a, float b, float t)
-{
-    return a + (b - a) * t;
-}
