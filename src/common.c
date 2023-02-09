@@ -128,10 +128,34 @@ Vec4f hex_to_vec4f(uint32_t color)
     return result;
 }
 
+// Windows does not define the S_ISREG and S_ISDIR macros in stat.h, so we do.
+// We have to define _CRT_INTERNAL_NONSTDC_NAMES 1 before #including sys/stat.h
+// in order for Microsoft's stat.h to define names like S_IFMT, S_IFREG, and S_IFDIR,
+// rather than just defining  _S_IFMT, _S_IFREG, and _S_IFDIR as it normally does.
+// inspired -- https://stackoverflow.com/questions/11238918/s-isreg-macro-undefined
+#define _CRT_INTERNAL_NONSTDC_NAMES 1
+#include <sys/stat.h>
+#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
+  #define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+#if !defined(S_ISDIR) && defined(S_IFMT) && defined(S_IFDIR)
+  #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+
 Errno type_of_file(const char *file_path, File_Type *ft)
 {
 #ifdef _WIN32
-#error "TODO: type_of_file() is not implemented for Windows"
+// added for mingw64 msys2. works nice.
+    struct __stat64 sb;
+    if (__stat64(file_path, &sb) < 0) return errno;
+    if (S_ISREG(sb.st_mode)) {
+        *ft = FT_REGULAR;
+    } else if (S_ISDIR(sb.st_mode)) {
+        *ft = FT_DIRECTORY;
+    } else {
+        *ft = FT_OTHER;
+    }
 #else
     struct stat sb = {0};
     if (stat(file_path, &sb) < 0) return errno;
