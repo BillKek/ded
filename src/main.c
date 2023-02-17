@@ -20,12 +20,16 @@
 #include "./simple_renderer.h"
 #include "./common.h"
 #include "./lexer.h"
+#include "./sv.h"
 
 // TODO: Save file dialog
 // Needed when ded is ran without any file so it does not know where to save.
 
-// TODO: Jump forward/backward by a word
+// TODO: An ability to create a new file
+// TODO: Jump up/down by paragraph
 // TODO: Delete a word
+// TODO: Delete selection
+// TODO: Jump to the beginning/end of the line
 
 void MessageCallback(GLenum source,
                      GLenum type,
@@ -51,6 +55,7 @@ static File_Browser fb = {0};
 
 // TODO: display errors reported via flash_error right in the text editor window somehow
 #define flash_error(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } while(0)
+
 
 int main(int argc, char **argv)
 {
@@ -137,16 +142,6 @@ int main(int argc, char **argv)
 
     if (GLEW_OK != glewInit()) {
         fprintf(stderr, "ERROR: Could not initialize GLEW!");
-        return 1;
-    }
-
-    if (!GLEW_ARB_draw_instanced) {
-        fprintf(stderr, "ARB_draw_instanced is not supported; game may not work properly!!\n");
-        return 1;
-    }
-
-    if (!GLEW_ARB_instanced_arrays) {
-        fprintf(stderr, "ARB_instanced_arrays is not supported; game may not work properly!!\n");
         return 1;
     }
 
@@ -250,11 +245,11 @@ int main(int argc, char **argv)
                         if (editor.file_path.count > 0) {
                             err = editor_save(&editor);
                             if (err != 0) {
-                                flash_error("Could not save file currently edited file: %s", strerror(err));
+                                flash_error("Could not save currently edited file: %s", strerror(err));
                             }
                         } else {
                             // TODO: ask the user for the path to save to in this situation
-                            flash_error("No where to save the text");
+                            flash_error("Nowhere to save the text");
                         }
                     }
                     break;
@@ -290,17 +285,33 @@ int main(int argc, char **argv)
                     }
                     break;
 
+                    case SDLK_TAB: {
+                        // TODO: indent on Tab instead of just inserting 4 spaces at the cursor
+                        // That is insert the spaces at the beginning of the line. Shift+TAB should
+                        // do unindent, that is remove 4 spaces from the beginning of the line.
+                        // TODO: customizable indentation style
+                        // - tabs/spaces
+                        // - tab width
+                        // - etc.
+                        for (size_t i = 0; i < 4; ++i) {
+                            editor_insert_char(&editor, ' ');
+                        }
+                    }
+                    break;
+
                     case SDLK_c: {
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_clipboard_copy(&editor);
                         }
-                    } break;
+                    }
+                    break;
 
                     case SDLK_v: {
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_clipboard_paste(&editor);
                         }
-                    } break;
+                    }
+                    break;
 
                     case SDLK_UP: {
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
@@ -318,14 +329,22 @@ int main(int argc, char **argv)
 
                     case SDLK_LEFT: {
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
-                        editor_move_char_left(&editor);
+                        if (event.key.keysym.mod & KMOD_CTRL) {
+                            editor_move_word_left(&editor);
+                        } else {
+                            editor_move_char_left(&editor);
+                        }
                         editor.last_stroke = SDL_GetTicks();
                     }
                     break;
 
                     case SDLK_RIGHT: {
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
-                        editor_move_char_right(&editor);
+                        if (event.key.keysym.mod & KMOD_CTRL) {
+                            editor_move_word_right(&editor);
+                        } else {
+                            editor_move_char_right(&editor);
+                        }
                         editor.last_stroke = SDL_GetTicks();
                     }
                     break;
@@ -336,7 +355,8 @@ int main(int argc, char **argv)
 
             case SDL_TEXTINPUT: {
                 if (file_browser) {
-                    // TODO: file browser keys
+                    // Nothing for now
+                    // Once we have incremental search in the file browser this may become useful
                 } else {
                     const char *text = event.text.text;
                     size_t text_len = strlen(text);
@@ -382,3 +402,4 @@ int main(int argc, char **argv)
 // TODO: ability to search within file browser
 // Very useful when you have a lot of files
 // TODO: ability to search with the text editor
+// TODO: ability to remove trailing whitespaces

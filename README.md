@@ -14,7 +14,7 @@
 
 ```console
 $ ./build.sh
-$ ./ded src\main.c
+$ ./ded src/main.c
 ```
 
 ## Windows MSVC
@@ -33,6 +33,6 @@ Change dir by `cd "path_copypasted_from_explorer_without_final_slash"`
 Run script `./build_msys2_mingw64.sh`. The resulting `life.exe` is 6 MB in size.
 
 
-# Font
+# Fonts
 
 Victor Mono: https://rubjo.github.io/victor-mono/

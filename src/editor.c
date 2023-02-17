@@ -35,6 +35,9 @@ void editor_delete(Editor *e)
     editor_retokenize(e);
 }
 
+// TODO: make sure that you always have new line at the end of the file while saving
+// https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_206
+
 Errno editor_save_as(Editor *e, const char *file_path)
 {
     printf("Saving as %s...\n", file_path);
@@ -116,6 +119,26 @@ void editor_move_char_left(Editor *e)
 void editor_move_char_right(Editor *e)
 {
     if (e->cursor < e->data.count) e->cursor += 1;
+}
+
+void editor_move_word_left(Editor *e)
+{
+    while (e->cursor > 0 && !isalnum(e->data.items[e->cursor - 1])) {
+        e->cursor -= 1;
+    }
+    while (e->cursor > 0 && isalnum(e->data.items[e->cursor - 1])) {
+        e->cursor -= 1;
+    }
+}
+
+void editor_move_word_right(Editor *e)
+{
+    while (e->cursor < e->data.count && !isalnum(e->data.items[e->cursor])) {
+        e->cursor += 1;
+    }
+    while (e->cursor < e->data.count && isalnum(e->data.items[e->cursor])) {
+        e->cursor += 1;
+    }
 }
 
 void editor_insert_char(Editor *e, char x)
